@@ -7,16 +7,18 @@ using ProductApi.Data;
 using ProductApi.DTOs;
 using AutoMapper;
 using ProductApi.Exceptions;
+using ProductApi.Repository;
 
 namespace ProductApi.Services
 {
     public class ProductService : IProductService
     {
-        private readonly AppDbContext _context;
+        
+           private readonly IProductRepository _repository;
         private readonly IMapper _mapper;
-         public ProductService(AppDbContext context,IMapper mapper)
+         public ProductService(IProductRepository repository,IMapper mapper)
         {
-            _context = context;
+           _repository = repository;
             _mapper = mapper;
         }       
          public void Add(AddProductDto dto)
@@ -30,26 +32,26 @@ namespace ProductApi.Services
             //     CreatedAt = DateTime.Now
             // };
 
-            _context.Products.Add(product);
-            _context.SaveChanges();
+            _repository.Add(product);
+             _repository.Save();
         }
 
         public void Delete(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _repository.GetById(id);
             if (product == null)
             {
                 throw new NotFoundException($"Product with id {id} not found.");
             }
 
-            _context.Products.Remove(product);
-            _context.SaveChanges();
+             _repository.Delete(product);
+            _repository.Save();
         }
 
         public IEnumerable<ProductDetailsDto> GetAll()
         {
 
-            var products =  _context.Products.ToList();
+            var products = _repository.GetAll();
             return _mapper.Map<IEnumerable<ProductDetailsDto>>(products);
             //
         }
@@ -57,7 +59,7 @@ namespace ProductApi.Services
         public ProductDetailsDto? GetById(int Id)
         {
 
-         var product = _context.Products.Find(Id);
+         var product =  _repository.GetById(Id);
             //if (product == null) return null;
             if (product == null)
             {
@@ -70,14 +72,15 @@ namespace ProductApi.Services
 
         public void Update(int id, AddProductDto dto)
         {
-           var product = _context.Products.Find(id);
+           var product =  _repository.GetById(id);;
            // if (product == null) return;
            if(product == null)
             {
                 throw new NotFoundException($"Product with id {id} not found.");
             }
             _mapper.Map(dto,product);
-            _context.SaveChanges();
+             _repository.Update(product);
+            _repository.Save();
         }
     }
 }
