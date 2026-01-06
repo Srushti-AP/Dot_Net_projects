@@ -51,7 +51,9 @@
             background-color: #198754;
             border-color: #198754;
         }
-
+        .is-valid {
+       border-color: #198754;
+      }
         .btn-secondary {
             background-color: #6c757d;
             border-color: #6c757d;
@@ -115,27 +117,27 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">First Name</label>
-                                <input type="text" id="firstName" class="form-control">
-                                <small class="text-danger" id="firstNameError"></small>
+                                <input type="text" id="firstName" name="firstName" class="form-control">
+                                <span class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label">Last Name</label>
-                                <input type="text" id="lastName" class="form-control">
-                                <small class="text-danger" id="lastNameError"></small>
+                                <input type="text" id="lastName" name="lastName" class="form-control">
+                               <span class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Department</label>
-                            <input type="text" id="department" class="form-control">
-                            <small class="text-danger" id="deptError"></small>
+                            <input type="text" id="department" name = "department" class="form-control">
+                           <span class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" id="email" class="form-control">
-                            <small class="text-danger" id="emailError"></small>
+                            <input type="email" id="email" name="email" class="form-control">
+                           <span class="text-danger"></span>
                         </div>
 
                         <button type="submit" id="btnSubmit" class="btn btn-success">
@@ -236,6 +238,8 @@
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,199 +1,216 @@
 $(function () {
 
-    // FORM SUBMIT
-    $("#empForm").submit(function (e) {
-        e.preventDefault();
-
-        let isValid = true;
-
-        let firstName = $("#firstName").val().trim();
-        let lastName = $("#lastName").val().trim();
-        let department = $("#department").val().trim();
-        let email = $("#email").val().trim();
-
-        // First Name validation
-        if (firstName === "") {
-            $("#firstNameError").text("First Name is required");
-            isValid = false;
-        } else {
-            $("#firstNameError").text("");
+    /* ============================
+       ADD EMPLOYEE FORM VALIDATION
+       ============================ */
+    $("#empForm").validate({
+        rules: {
+            firstName: {
+                required: true,
+                minlength: 2
+            },
+            lastName: {
+                required: true,
+                minlength: 2
+            },
+            department: {
+                required: true
+            },
+            email: {
+                required: true,
+                email: true
+            }
+        },
+        messages: {
+            firstName: {
+                required: "First name is required",
+                minlength: "Minimum 2 characters required"
+            },
+            lastName: {
+                required: "Last name is required",
+                minlength: "Minimum 2 characters required"
+            },
+            department: {
+                required: "Department is required"
+            },
+            email: {
+                required: "Email is required",
+                email: "Enter a valid email address"
+            }
+        },
+        errorElement: "span",
+        errorClass: "text-danger",
+        highlight: function (element) {
+            $(element).addClass("is-invalid");
+        },
+        unhighlight: function (element) {
+            $(element).removeClass("is-invalid");
+        },
+        submitHandler: function (form) {
+            addEmployee();
         }
+    });
 
-        // Last Name validation
-        if (lastName === "") {
-            $("#lastNameError").text("Last Name is required");
-            isValid = false;
-        } else {
-            $("#lastNameError").text("");
-        }
+    /* ============================
+       LOAD EMPLOYEES
+       ============================ */
+    $("#loadEmployees").click(function () {
+        loadEmployees();
+    });
 
-        // Department validation
-        if (department === "") {
-            $("#departmentError").text("Department is required");
-            isValid = false;
-        } else {
-            $("#departmentError").text("");
-        }
+    /* ============================
+       UPDATE EMPLOYEE
+       ============================ */
+    $("#updateEmployee").click(function () {
 
-        // Email validation
-        if (email === "") {
-            $("#emailError").text("Email is required");
-            isValid = false;
-        }
-        else if (!isValidEmail(email)) {
-            $("#emailError").text("Enter a valid email");
-            isValid = false;
-        }
-        else {
-            $("#emailError").text("");
-        }
+        let id = $("#editId").val();
 
-       
-        if (!isValid) {
-            return;
-        }
-
-        // ✅ AJAX POST
         let employee = {
-            firstName: firstName,
-            lastName: lastName,
-            department: department,
-            email: email
+            firstName: $("#editFirstName").val(),
+            lastName: $("#editLastName").val(),
+            department: $("#editDepartment").val(),
+            email: $("#editEmail").val()
         };
 
         $.ajax({
-            url: "http://localhost:5237/api/employee",
-            type: "POST",
+            url: `http://localhost:5237/api/employee/${id}`,
+            type: "PUT",
             contentType: "application/json",
             data: JSON.stringify(employee),
             success: function () {
-                $("#msg").text("Employee added successfully!")
-                         .removeClass("text-danger")
-                         .addClass("text-success");
-
-                $("#empForm")[0].reset();
+                $("#editModal").modal("hide");
+                loadEmployees();
             },
             error: function () {
-                $("#msg").text("Error adding employee")
-                         .removeClass("text-success")
-                         .addClass("text-danger");
+                alert("Update failed");
             }
         });
     });
 
-    // LOAD EMPLOYEES
-    $("#loadEmployees").click(function () {
+    /* ============================
+       CONFIRM DELETE
+       ============================ */
+    $("#confirmDelete").click(function () {
+
+        let id = $("#deleteId").val();
+
         $.ajax({
-            url: "http://localhost:5237/api/employee",
-            type: "GET",
-            success: function (data) {
-                let rows = "";
-                $.each(data, function (i, emp) {
-                    rows += `<tr>
-                        <td>${emp.id}</td>
-                        <td>${emp.firstName}</td>
-                        <td>${emp.lastName}</td>
-                        <td>${emp.department}</td>
-                        <td>${emp.email}</td>
-                        <td>
-                          <button class="btn btn-sm btn-primary editBtn"
-                           data-id="${emp.id}"
-                           data-firstname="${emp.firstName}"
-                           data-lastname="${emp.lastName}"
-                            data-department="${emp.department}"
-                             data-email="${emp.email}">
-                              Edit
-                         </button>
-                   <button class="btn btn-sm btn-danger deleteBtn ms-1"
-                        data-id="${emp.id}">
-                        Delete
-                   </button>
-                     </td>
-                    </tr>`;
-                });
-                $("#empTable tbody").html(rows);
+            url: `http://localhost:5237/api/employee/${id}`,
+            type: "DELETE",
+            success: function () {
+                let modalEl = document.getElementById("deleteModal");
+                let modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+                loadEmployees();
             },
             error: function () {
-                alert("Error loading data");
+                alert("Delete failed");
             }
         });
-    });//loademp
+    });
 
-//Update Employee
-$("#updateEmployee").click(function () {
+    /* ============================
+       EDIT BUTTON CLICK
+       ============================ */
+    $(document).on("click", ".editBtn", function () {
+        $("#editId").val($(this).data("id"));
+        $("#editFirstName").val($(this).data("firstname"));
+        $("#editLastName").val($(this).data("lastname"));
+        $("#editDepartment").val($(this).data("department"));
+        $("#editEmail").val($(this).data("email"));
 
-    let id = $("#editId").val();
+        let editModal = new bootstrap.Modal(
+            document.getElementById("editModal")
+        );
+        editModal.show();
+    });
+
+    /* ============================
+       DELETE BUTTON CLICK
+       ============================ */
+    $(document).on("click", ".deleteBtn", function () {
+        $("#deleteId").val($(this).data("id"));
+
+        let deleteModal = new bootstrap.Modal(
+            document.getElementById("deleteModal")
+        );
+        deleteModal.show();
+    });
+
+});
+
+/* ============================
+   ADD EMPLOYEE AJAX
+   ============================ */
+function addEmployee() {
 
     let employee = {
-        firstName: $("#editFirstName").val(),
-        lastName: $("#editLastName").val(),
-        department: $("#editDepartment").val(),
-        email: $("#editEmail").val()
+        firstName: $("#firstName").val(),
+        lastName: $("#lastName").val(),
+        department: $("#department").val(),
+        email: $("#email").val()
     };
 
     $.ajax({
-        url: `http://localhost:5237/api/employee/${id}`,
-        type: "PUT",
+        url: "http://localhost:5237/api/employee",
+        type: "POST",
         contentType: "application/json",
         data: JSON.stringify(employee),
         success: function () {
-            $("#editModal").modal("hide");
-            $("#loadEmployees").click(); // refresh table
+            $("#msg").text("Employee added successfully!")
+                .removeClass("text-danger")
+                .addClass("text-success");
+
+            $("#empForm")[0].reset();
+            $(".form-control").removeClass("is-invalid");
         },
         error: function () {
-            alert("Update failed");
+            $("#msg").text("Error adding employee")
+                .removeClass("text-success")
+                .addClass("text-danger");
         }
     });
-});
+}
 
-//Delete employee
-$("#confirmDelete").click(function () {
-
-    let id = $("#deleteId").val();
+/* ============================
+   LOAD EMPLOYEES AJAX
+   ============================ */
+function loadEmployees() {
 
     $.ajax({
-        url: `http://localhost:5237/api/employee/${id}`,
-        type: "DELETE",
-        success: function () {
+        url: "http://localhost:5237/api/employee",
+        type: "GET",
+        success: function (data) {
 
-            let modalEl = document.getElementById("deleteModal");
-            let modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
+            let rows = "";
+            $.each(data, function (i, emp) {
+                rows += `<tr>
+                    <td>${emp.id}</td>
+                    <td>${emp.firstName}</td>
+                    <td>${emp.lastName}</td>
+                    <td>${emp.department}</td>
+                    <td>${emp.email}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary editBtn"
+                            data-id="${emp.id}"
+                            data-firstname="${emp.firstName}"
+                            data-lastname="${emp.lastName}"
+                            data-department="${emp.department}"
+                            data-email="${emp.email}">
+                            Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger deleteBtn ms-1"
+                            data-id="${emp.id}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>`;
+            });
 
-            $("#loadEmployees").click();
+            $("#empTable tbody").html(rows);
         },
         error: function () {
-            alert("Delete failed");
+            alert("Error loading employees");
         }
     });
-});
-
-    $(document).on("click", ".editBtn", function () {
-        console.log("Edit clicked", $(this).data("id"));
-    $("#editId").val($(this).data("id"));
-    $("#editFirstName").val($(this).data("firstname"));
-    $("#editLastName").val($(this).data("lastname"));
-    $("#editDepartment").val($(this).data("department"));
-    $("#editEmail").val($(this).data("email"));
-    let editModal = new bootstrap.Modal(document.getElementById("editModal"));
-    editModal.show();
-    });
-
-    // 4️⃣ DELETE BUTTON CLICK (ADD HERE)
-    $(document).on("click", ".deleteBtn", function () {
-        console.log("Delete clicked", $(this).data("id"));
-         $("#deleteId").val($(this).data("id"));
-
-    let deleteModal = new bootstrap.Modal(
-        document.getElementById("deleteModal")
-    );
-    deleteModal.show();
-    });
-
-});
-
-// EMAIL VALIDATION FUNCTION
-function isValidEmail(email) {
-    let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
 }
