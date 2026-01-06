@@ -8,6 +8,7 @@ using EmployeeApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using EmployeeApi.Services;
 
 
 namespace EmployeeApi.Controllers
@@ -15,63 +16,40 @@ namespace EmployeeApi.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class EmployeeController : ControllerBase
+   {
+      private readonly IEmployeeService _employeeService;
+
+    public EmployeeController(IEmployeeService employeeService)
     {
-        private readonly AppDbContext _context;
+        _employeeService = employeeService;
+    }
 
-        public EmployeeController(AppDbContext context)
-        {
-            _context = context;
-        }
+    [HttpPost]
+    public IActionResult AddEmployee(Employee employee)
+    {
+        _employeeService.AddEmployee(employee);
+        return Ok("Employee added successfully");
+    }
 
-        // POST: api/employee
-        [HttpPost]
-        public IActionResult AddEmployee(Employee employee)
-        {
-            // employee.CreatedDate = DateTime.Now;
-            // employee.ModifiedDate = DateTime.Now;
-            // _context.Employee.Add(employee);
-            // _context.SaveChanges();
-            _context.Database.ExecuteSqlRaw("exec AddEmployee @FirstName, @LastName,@Department,@Email", 
-        new SqlParameter("@FirstName", employee.FirstName),
-        new SqlParameter("@LastName", employee.LastName),
-        new SqlParameter("@Department", employee.Department),
-        new SqlParameter("@Email", employee.Email));
+    [HttpGet]
+    public IActionResult GetEmployees()
+    {
+        var employees = _employeeService.GetEmployees();
+        return Ok(employees);
+    }
 
-            return Ok("Employee added successfully");
-        }
-
-        // GET: api/employee
-        [HttpGet]
-        public IActionResult GetEmployees()
-        {
-            var employees = _context.Employee.FromSqlRaw("exec GetEmployee").ToList();
-            return Ok(employees);
-        }
-
-        [HttpPut("{id}")]
-        public IActionResult UpdateEmployee(int id, Employee emp)
-       {
-         _context.Database.ExecuteSqlRaw(
-        "EXEC UpdateEmployee @Id, @FirstName, @LastName, @Department, @Email",
-        new SqlParameter("@Id", id),
-        new SqlParameter("@FirstName", emp.FirstName),
-        new SqlParameter("@LastName", emp.LastName),
-        new SqlParameter("@Department", emp.Department),
-        new SqlParameter("@Email", emp.Email)
-    );
-    return Ok();
+    [HttpPut("{id}")]
+    public IActionResult UpdateEmployee(int id, Employee employee)
+    {
+        _employeeService.UpdateEmployee(id, employee);
+        return Ok("Employee updated successfully");
     }
 
     [HttpDelete("{id}")]
     public IActionResult DeleteEmployee(int id)
-        {
-            _context.Database.ExecuteSqlRaw(
-                "exec DeleteEmployee @Id",
-                new SqlParameter("@Id",id)
-            );
-            return  Ok();;
-        }
-
-        
+    {
+        _employeeService.DeleteEmployee(id);
+        return Ok("Employee deleted successfully");
     }
+}
 }

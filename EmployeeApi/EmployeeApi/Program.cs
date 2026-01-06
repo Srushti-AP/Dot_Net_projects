@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using EmployeeApi.Data;
+using EmployeeApi.Repository;
+using EmployeeApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
 builder.Services.AddCors(options =>
 {
